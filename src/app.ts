@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
-import cors from "cors"; // This line is causing the error
-import prisma from "./config/prisma";
+import cors from "cors";
 
 dotenv.config();
 
