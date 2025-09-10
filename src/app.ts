@@ -1,33 +1,20 @@
 import dotenv from "dotenv";
 import "dotenv/config"
-import express, { Application, Request, Response } from "express";
+import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRoute from "./modules/auth/auth.route";
-import { requireAuth } from "./middlewares/auth";
 import { erroHandler } from "./middlewares/errorHandler";
-import logger from "./utils/logger";
+import router from "./routes";
 
 dotenv.config();
 
-const app: Application = express();
+const app = express();
 
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-app.get("/", (req: Request, res: Response) => {
-    logger.info("Welcome to kyoo event management and ticekting system");
-    res.json({ 
-        message: "Welcome to kyoo event management and ticekting system"
-    });
-}); 
-
-app.use("/api/auth", authRoute);
-
-app.get("/api/me", requireAuth, (req, res) => {
-    res.json({ user: req.user });
-})
+app.use("/", router)
 
 app.use(erroHandler);
 
