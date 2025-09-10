@@ -1,11 +1,17 @@
-import { Request, Response } from "express";
-import { createRefreshTokenForUser, registerUser, revokedRefreshToken, rotateRefreshToken, validateUser } from "./auth.service";
+import { NextFunction, Request, Response } from "express";
 import { signAccessToken } from "../../utils/jwt";
 import prisma from "../../config/prisma";
+import { AuthRepository } from "./auth.repository";
+import { AuthService } from "./auth.service";
+import { loginSchema, registerSchema } from "./auth.schema";
+import { validate } from "../../utils/validator";
 
 const isProd = process.env.NODE_ENV === "production";
 
-function setAuthCookies(res: Response, accessToken: string, refreshToken: string) {
+const repo = new AuthRepository();
+const service = new AuthService(repo);
+
+function setCookies(res: Response, accessToken: string, refreshToken: string) {
     res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: isProd,
@@ -21,86 +27,95 @@ function setAuthCookies(res: Response, accessToken: string, refreshToken: string
     });
 }
 
-function clearAuthCookies(res: Response) {
+function clearCookies(res: Response) {
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
 }
 
-export async function register(req: Request, res: Response) {
-    try {
-        const { name, email, password } = req.body;
-        const user = await registerUser({ name, email, password });
-
-        const accessToken = signAccessToken({ userId: user.id, role: user.role });
-
-        const { raw: refreshToken } = await createRefreshTokenForUser(user.id);
-
-        setAuthCookies(res, accessToken, refreshToken);
-
-        return res.status(201).json({ 
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email
-            }
-        })
-    } catch (err: any) {
-        return res.status(400).json({ error: err.message || "Bad request" });
+export class AuthController {
+    constructor() {
+        this.register = this.register.bind(this);
+        this.login = this.login.bind(this);
+        this.refresh = this.refresh.bind(this);
+        this.logout = this.logout.bind(this);
     }
-}
 
-export async function login(req: Request, res: Response) {
-    try {
-        const { email, password } = req.body;
-        const user = await validateUser(email, password);
-        if (!user) return res.status(401).json({ error: "Invalid credentials" });
-
-        const accessToken = signAccessToken({ userId: user.id, role: user.role });
-        const { raw: refreshToken } = await createRefreshTokenForUser(user.id);
-
-        setAuthCookies(res, accessToken, refreshToken);
-
-        return res.json({ user: {
-                id: user.id,
-                name: user.name,
-                email: user.email
-            } 
-        });
-    } catch (err: any) {
-        return res.status(500).json({ error: err.message || "Internal server error" });
-    }
-}
-
-export async function refresh(req: Request, res: Response) {
-    try {
-        const raw = req.cookies?.refreshToken;
-        if (!raw) return res.status(401).json({ error: "Unauthorized" });
-
-        const { newRaw, userId } = await rotateRefreshToken(raw);
-
-        const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (!user) throw new Error("User not found");
-
-        const accessToken = signAccessToken({ userId: user.id, role: user.role });
-        setAuthCookies(res, accessToken, newRaw);
-
-        return res.json({ message: "Token refreshed" });
-    } catch (err: any) {
-        clearAuthCookies(res);
-        return res.status(401).json({ error: err.message || "Couldnot refresh token" });
-    }
-}
-
-export async function logout(req: Request, res: Response) {
-    try {
-        const raw = req.cookies?.refreshToken;
-        if (raw) {
-            await revokedRefreshToken(raw);
+    async register(req: Request, res: Response, next: NextFunction) {
+        try {
+            const data = validate(registerSchema, req.body);
+            const user = await service.registerUser(data);
+    
+            const { accessToken, refreshToken } = await service.createTokens(user);
+    
+            setCookies(res, accessToken, refreshToken);
+    
+            return res.status(201).json({ 
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
+                }
+            })
+        } catch (err: any) {
+            next(err)
         }
+    }
 
-        clearAuthCookies(res);
-        return res.json({ message: "Logout successful" });
-    } catch (err: any) {
-        return res.status(500).json({ error: err.message || "Internal server error" });
+    async login(req: Request, res: Response) {
+        try {
+            const data = loginSchema.parse(req.body)
+            const user = await service.validateUser(data);
+            if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    
+            const { accessToken, refreshToken } = await service.createTokens(user);
+    
+            setCookies(res, accessToken, refreshToken);
+    
+            return res.json({ 
+                user: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email
+                } 
+            });
+        } catch (err: any) {
+            return res.status(500).json({ error: err.message || "Internal server error" });
+        }
+    }
+
+    async refresh(req: Request, res: Response) {
+        try {
+            const raw = req.cookies?.refreshToken;
+            if (!raw) return res.status(401).json({ error: "Unauthorized" });
+    
+            const { refreshToken, userId } = await service.rotateRefreshToken(raw);
+    
+            const user = await prisma.user.findUnique({ where: { id: userId } });
+            if (!user) throw new Error("User not found");
+    
+            const accessToken = signAccessToken({ userId: user.id, role: user.role });
+            setCookies(res, accessToken, refreshToken);
+    
+            return res.json({ message: "Token refreshed" });
+        } catch (err: any) {
+            clearCookies(res);
+            return res.status(401).json({ error: err.message || "Couldnot refresh token" });
+        }
+    }
+    async logout(req: Request, res: Response) {
+        try {
+            const raw = req.cookies?.refreshToken;
+            if (raw) {
+                await service.revokedRefreshToken(raw);
+            }
+    
+            clearCookies(res);
+            return res.json({ message: "Logout successful" });
+        } catch (err: any) {
+            return res.status(500).json({ error: err.message || "Internal server error" });
+        }
     }
 }
+
+
+

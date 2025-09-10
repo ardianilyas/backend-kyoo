@@ -1,6 +1,7 @@
 import jwt, { SignOptions, JwtPayload } from "jsonwebtoken";
 
 const ACCESS_SECRET = process.env.ACCESS_TOKEN_SECRET as string;
+if(!ACCESS_SECRET) throw new Error("ACCESS_TOKEN_SECRET is not defined");
 
 export function signAccessToken(payload: JwtPayload) {
   const options: SignOptions = { expiresIn: 15 * 60 }; // 15 minutes

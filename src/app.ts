@@ -1,9 +1,11 @@
 import dotenv from "dotenv";
+import "dotenv/config"
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import authRoute from "./modules/auth/auth.route";
 import { requireAuth } from "./middlewares/auth";
+import { erroHandler } from "./middlewares/errorHandler";
 
 dotenv.config();
 
@@ -24,5 +26,7 @@ app.use("/api/auth", authRoute);
 app.get("/api/me", requireAuth, (req, res) => {
     res.json({ user: req.user });
 })
+
+app.use(erroHandler);
 
 export default app;
