@@ -6,6 +6,7 @@ import cookieParser from "cookie-parser";
 import authRoute from "./modules/auth/auth.route";
 import { requireAuth } from "./middlewares/auth";
 import { erroHandler } from "./middlewares/errorHandler";
+import logger from "./utils/logger";
 
 dotenv.config();
 
@@ -16,6 +17,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get("/", (req: Request, res: Response) => {
+    logger.info("Welcome to kyoo event management and ticekting system");
     res.json({ 
         message: "Welcome to kyoo event management and ticekting system"
     });
