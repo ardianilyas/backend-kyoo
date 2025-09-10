@@ -60,11 +60,26 @@ model Event {
   location        String
   date            DateTime
   capacity        Int
+
   organizer       User    @relation("OrganizerEvents", fields: [organizerId], references: [id])
   organizerId     String
+
+  categoryId      String
+  category        EventCategory @relation(fields: [categoryId], references: [id])
+
   tickets         Ticket[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+model EventCategory {
+  id            String      @id @default(uuid())
+  name          String      @unique
+  description   String?
+  status        Boolean     @default(true)
+  events        Event[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
 }
 
 model Ticket {
