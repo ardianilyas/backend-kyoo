@@ -14,7 +14,7 @@ Kyoo is a event management and ticekting app
 - Auth (register, login, refresh, logout)
 
 ### Todo Next :
-- [ ] Role Middleware
+- [x] Role Middleware
 - [ ] Assign role for Admin and Superadmin
-- [ ] Create, Read, Update, Delete Event Category
-- [ ] Request Organizer role (User -> Admin)
+- [x] Create, Read, Update, Delete Event Category
+- [x] Request Organizer role (User -> Admin)
