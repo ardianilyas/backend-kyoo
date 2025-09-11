@@ -8,7 +8,8 @@ const controller = new UserController();
 
 router.use(requireAuth);
 
-router.use(checkRole("USER"));
-router.post("/request-organizer-role", controller.requestOrganizerRole);
+router.use(checkRole("USER"), Router()
+    .post("/request-organizer-role", controller.requestOrganizerRole),
+);
 
 export default router;
