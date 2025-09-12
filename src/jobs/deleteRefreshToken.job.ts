@@ -1,6 +1,5 @@
 import cron from "node-cron";
 import prisma from "../config/prisma";
-import { lt } from "zod";
 import logger from "../utils/logger";
 
 export class DeleteRefreshTokenJob {
