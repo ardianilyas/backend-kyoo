@@ -1,11 +1,12 @@
 import cron from "node-cron";
 import prisma from "../config/prisma";
 import { lt } from "zod";
+import logger from "../utils/logger";
 
 export class DeleteRefreshTokenJob {
     start() {
         cron.schedule("* * * * *", async () => {
-            console.log("Running delete refresh token job . . .");
+            logger.job.info("Deleting revoked and expired refresh tokens...");
             try {
                 const result = await prisma.refreshToken.deleteMany({
                     where: {
@@ -16,12 +17,12 @@ export class DeleteRefreshTokenJob {
                     },
                 });
                 if(result.count > 0) {
-                    console.log(`${result.count} refresh tokens deleted successfully.`);
+                    logger.job.info({ data: result }, `${result.count} refresh tokens deleted successfully`);
                 } else {
-                    console.log("No refresh tokens to delete.");
+                    logger.job.info("No refresh tokens to delete");
                 }
             } catch (error) {
-                console.log("Error deleting refresh tokens:", error);
+                logger.job.error({ error }, "Error deleting refresh tokens");
             }
         })
     }
