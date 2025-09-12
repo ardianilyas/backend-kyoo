@@ -23,7 +23,7 @@ export class AuthService {
         const hashed = await bcrypt.hash(data.password, 10);
     
         const user = await this.repo.createUser({ ...data, password: hashed });
-        logger.info({ data: { id: user.id, email: user.email, name: user.name } }, "A new user registered");
+        logger.app.info({ data: { id: user.id, email: user.email, name: user.name } }, "A new user registered");
 
         return user;
     }
@@ -46,7 +46,7 @@ export class AuthService {
         const expiresAt = addDays(new Date(), this.refreshDays);
     
         const newRefreshToken = await this.repo.createRefreshToken({ tokenHash: hashed, userId: user.id, expiresAt })
-        logger.info({ data: { id: newRefreshToken.id, userId: newRefreshToken.userId } }, "A new refresh token created on db");
+        logger.app.info({ data: { id: newRefreshToken.id, userId: newRefreshToken.userId } }, "A new refresh token created on db");
     
         return { accessToken, refreshToken: raw }
     }

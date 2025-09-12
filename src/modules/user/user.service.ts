@@ -11,7 +11,7 @@ export class UserService {
         if(exists) throw new ConflictError("You are already requesting an organizer role, please wait until it is approved", { userId, data: exists });
 
         const roleRequest = await this.userRepo.requestOrganizerRole(userId);
-        logger.info({ data: roleRequest }, `Role request created by ${userId}`);
+        logger.app.info({ data: roleRequest }, `Role request created by ${userId}`);
 
         return roleRequest;
     }

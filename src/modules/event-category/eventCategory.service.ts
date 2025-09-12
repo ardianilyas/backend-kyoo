@@ -13,7 +13,7 @@ export class EventCategroyService {
 
         const eventCategory = await this.repo.create(data);
 
-        logger.info({ data: eventCategory }, "A new event category created");
+        logger.app.info({ data: eventCategory }, "A new event category created");
 
         return eventCategory;
     }
@@ -37,7 +37,7 @@ export class EventCategroyService {
 
         const updatedEventCategory = await this.repo.update(id, data);
         
-        logger.info({ data: updatedEventCategory }, "Event Category updated");
+        logger.app.info({ data: updatedEventCategory }, "Event Category updated");
 
         return updatedEventCategory;
     }
@@ -49,7 +49,7 @@ export class EventCategroyService {
 
         const deletedEventCategory = await this.repo.delete(id);
 
-        logger.info({ data: deletedEventCategory }, "Event Category deleted");
+        logger.app.info({ data: deletedEventCategory }, "Event Category deleted");
 
         return;
     }

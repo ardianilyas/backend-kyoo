@@ -8,7 +8,7 @@ export class EventService {
 
     async createEvent(data: CreateEventSchema) {
         const event = await this.eventRepository.createEvent(data);
-        logger.info({ data: event }, `A new event created by ${data.organizerId}`);
+        logger.app.info({ data: event }, `A new event created by ${data.organizerId}`);
         return event;
     }
 
@@ -32,7 +32,7 @@ export class EventService {
         if(exists.organizerId !== userId) throw new ForbiddenError("You are not allowed to update this event");
 
         const event = await this.eventRepository.updateEvent(id, data);
-        logger.info({ data: event }, `Event updated by`);
+        logger.app.info({ data: event }, `Event updated by`);
 
         return event;
     }
@@ -45,7 +45,7 @@ export class EventService {
         if(exists.organizerId !== userId) throw new ForbiddenError("You are not allowed to delete this event");
 
         const event = await this.eventRepository.deleteEvent(id);
-        logger.info({ data: event }, `Event deleted successfully`);
+        logger.app.info({ data: event }, `Event deleted successfully`);
 
         return event;
     }
