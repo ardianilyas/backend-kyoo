@@ -37,10 +37,3 @@ export class ForbiddenError extends AppError {
         this.name = "ForbiddenError";
     }
 }
-
-export class BadRequestError extends AppError {
-    constructor(message: string, details?: Record<string, any>) {
-        super(message, 400, details);
-        this.name = "BadRequestError";
-    }
-}

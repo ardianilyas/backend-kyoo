@@ -1,20 +1,17 @@
-import { ZodObject, ZodError, z } from "zod";
+import z, { ZodObject } from "zod";
+import { AppError } from "./errors";
 import { formatZodError } from "./validationError";
 
 export function validate<T extends ZodObject<any>>(
   schema: T,
   data: unknown
 ): z.infer<T> {
-  try {
-    return schema.parse(data);
-  } catch (error) {
-    if (error instanceof ZodError) {
-      const errors = formatZodError(error);
-      const e: any = new Error("Validation failed");
-      e.status = 400;
-      e.errors = errors;
-      throw e;
-    }
-    throw error;
+  const result = schema.safeParse(data);
+
+  if (!result.success) {
+    const errors = formatZodError(result.error);
+    throw new AppError("Validation failed", 400, errors);
   }
+
+  return result.data;
 }
