@@ -14,6 +14,10 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+app.get("/", (req, res) => {
+    res.status(200).json({ message: "Hello world!" });
+});
+
 app.use("/", router)
 
 app.use(erroHandler);
